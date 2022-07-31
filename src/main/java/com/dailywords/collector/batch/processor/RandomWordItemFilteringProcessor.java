@@ -11,7 +11,7 @@ public class RandomWordItemFilteringProcessor implements ItemProcessor<RandomWor
 
     @Override
     public RandomWord process(RandomWord randomWord) {
-        System.out.println("Filtering random word");
+        System.out.println("RandomWord: " + randomWord);
         return Objects.nonNull(randomWord.getResults()) ? randomWord : null;
     }
 }

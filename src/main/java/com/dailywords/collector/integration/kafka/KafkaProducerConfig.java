@@ -22,12 +22,16 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.template.default-topic}")
     private String topic;
 
+    @Value("${spring.kafka.consumer.client-id}")
+    private String clientId;
+
     @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RandomWordSerializer.class);
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         return props;
     }
 
