@@ -21,7 +21,7 @@ public class FetchRandomWordsTask {
     private final GoogleTranslateAPIClient translateClient;
     private final RandomWordRepository randomWordRepository;
 
-    @Scheduled(cron = "${tasks.fetch-random-words}")
+//    @Scheduled(cron = "${tasks.fetch-random-words}")
     public void fetchRandomWords() {
         log.info("Fetch random words");
         wordsClient.getRandomWords()

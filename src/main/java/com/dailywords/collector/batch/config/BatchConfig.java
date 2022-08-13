@@ -7,7 +7,6 @@ import com.dailywords.collector.integration.kafka.RandomWordKafkaConverter;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.quartz.*;
-import org.quartz.JobExecutionException;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -34,7 +33,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -59,26 +58,16 @@ public class BatchConfig extends QuartzJobBean {
         return new RandomWordItemFilteringProcessor();
     }
 
-    public Query itemReaderQuery() {
-        Query query = new Query();
-        query.cursorBatchSize(10);
-        query.limit(1);
-        query.with(Pageable.ofSize(20));
-        return query;
-    }
-
     @Bean
     public ItemReader<RandomWord> mongoItemReader() {
-        Map<String, Sort.Direction> sortMap = new HashMap<>();
-        sortMap.put("_id", Sort.Direction.DESC);
-
         // TODO: Read last number of items.
         return new MongoItemReaderBuilder<RandomWord>()
                 .name("randomWordItemReader")
                 .template(mongoTemplate)
-                .query(itemReaderQuery())
-                .sorts(sortMap)
-                .currentItemCount(20)
+                .jsonQuery("{}")
+                .sorts(Map.of("_id",  Sort.Direction.DESC))
+                .maxItemCount(20)
+                .currentItemCount(0)
                 .pageSize(20)
                 .targetType(RandomWord.class)
                 .build();
@@ -114,7 +103,7 @@ public class BatchConfig extends QuartzJobBean {
     @Bean
     public Step fetchRandomWordItemStep() {
         return stepBuilderFactory.get("fetchRandomWordItemStep")
-                .<RandomWord, RandomWord>chunk(20)
+                .<RandomWord, RandomWord>chunk(50)
                 .reader(mongoItemReader())
                 .processor(randomWordItemFilteringProcessor())
                 .writer(kafkaItemWriter())
